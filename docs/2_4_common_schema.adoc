@@ -138,12 +138,9 @@ image::images/schema/Annotations.png[width=80%]
 Each `Annotation` element contains a required `type` attribute, which contains the namespace for that annotation.
 The content of the `Annotation` element can be arbitrary XML data, and can make use of XML namespaces and XML schemas for combined validation where appropriate.
 
-The namespace mechanism for the `type` attribute is based on reverse domain notation:
+The namespace mechanism for the `type` attribute is based on <<reverse-DNS,reverse domain name notation>>:
 The originator of a specification for additional data specifies a domain name under their control as the namespace for the additional data, in order to avoid conflicts due to name collisions.
-All namespaces under both the `org.modelica` and `org.fmi-standard` domains are reserved for use in future layered standards.
-
-_[For example, extensions defined by the Modelica Association might make use of the `org.modelica.fmi` namespace._
-_This could lead to annotations with a `type` attribute of `org.modelica.fmi.something`, and/or extra files under the `extra/org.modelica.ssp.something` sub-directory.]_
+Such standardized annotations can be defined by a <<LS-reverse-DNS,layered standard>>, for example.
 
 Annotations are intended to allow structured extensions of the FMI XML files, without creating conflicting extensions, or leaving ambiguities in interpretation.
 All annotations may safely be ignored by implementations that just implement the base FMI standard.
@@ -343,7 +340,12 @@ A value latexmath:[v_{\mathit{unit}}] in `Unit` is converted to the base unit la
 
 [latexmath]
 ++++
-v_{\mathit{base}} = \texttt{factor} * v_{\mathit{unit}} + \texttt{if relativeQuantity then 0 else offset}
+v_{\mathit{base}} = \texttt{factor} \cdot v_{\mathit{unit}} + \left\{
+\begin{array}{ll}
+0 & \texttt{if relativeQuantity = true} \\
+\texttt{offset} & \texttt{if relativeQuantity = false}
+\end{array}
+\right.
 ++++
 where `factor` and `offset` are attributes of the `<BaseUnit>`, and  `relativeQuantity` an attribute of the `TypeDefinition` of a variable.
 
@@ -351,13 +353,13 @@ _[For example, if_ latexmath:[{p_{\mathit{bar}}}] _is a pressure value in unit `
 
 [latexmath]
 ++++
-{p_{\mathit{Pa}} = 10^5 p_{\mathit{bar}}}
+{p_{\mathit{Pa}} = 10^5 \cdot p_{\mathit{bar}}}
 ++++
 
 _and therefore, `factor = 1.0e5` and `offset = 0.0`._
 
 _In the following table several unit examples are given._
-_Note that if in column `exponents` the definition_ latexmath:[\frac{kg \cdot m^2}{s^2}] _is present, then the attributes of `<BaseUnit>` are  `kg=1, m=2, s=-2`._
+_Note that if in column `exponents` the definition_ latexmath:[\mathrm{kg} \cdot \mathrm{m}^2 \cdot \mathrm{s}^{-2}] _is present, then the attributes of `<BaseUnit>` are  `kg=1, m=2, s=-2`._
 
 .Unit examples.
 [[table-unit-examples]]
@@ -373,75 +375,75 @@ h|offset
 
 |_Torque_
 |`N.m`
-|latexmath:[{kg \cdot m^2 / s^2}]
-|`1.0`
-|`0.0`
+|latexmath:[\mathrm{kg} \cdot \mathrm{m}^2 \cdot \mathrm{s}^{-2}]
+|latexmath:[1.0]
+|latexmath:[0.0]
 
 |_Energy_
 |`J`
-|latexmath:[{kg \cdot m^2 / s^2}]
-|`1.0`
-|`0.0`
+|latexmath:[\mathrm{kg} \cdot \mathrm{m}^2 \cdot \mathrm{s}^{-2}]
+|latexmath:[1.0]
+|latexmath:[0.0]
 
 |_Pressure_
 |`bar`
-|latexmath:[{\frac{kg}{m \cdot s^2}}]
-|`1.0e5`
-|`0.0`
+|latexmath:[\mathrm{kg} \cdot \mathrm{m}^{-1} \cdot \mathrm{s}^{-2}]
+|latexmath:[1.0 \cdot 10^5]
+|latexmath:[0.0]
 
 |_Angle_
 |`deg`
-|`rad`
-|`0.01745329251994330 (= pi/180)`
-|`0.0`
+|latexmath:[\mathrm{rad}]
+|latexmath:[0.01745329251994330 \ \left(= \frac{\pi}{180}\right)]
+|latexmath:[0.0]
 
 |_Angular velocity_
 |`rad/s`
-|`rad/s`
-|`1.0`
-|`0.0`
+|latexmath:[\mathrm{rad} \cdot \mathrm{s}^{-1}]
+|latexmath:[1.0]
+|latexmath:[0.0]
 
 |_Angular velocity_
 |`rpm`
-|`rad/s`
-|`0.1047197551196598 (= 2*pi/60)`
-|`0.0`
+|latexmath:[\mathrm{rad} \cdot \mathrm{s}^{-1}]
+|latexmath:[0.1047197551196598 \ \left(= 2 \cdot \frac{\pi}{60}\right)]
+|latexmath:[0.0]
 
 |_Frequency_
 |`Hz`
-|`rad/s`
-|`6.283185307179586 (= 2*pi)`
-|`0.0`
+|latexmath:[\mathrm{rad} \cdot \mathrm{s}^{-1}]
+|latexmath:[6.283185307179586 \ \left(= 2 \cdot \pi\right)]
+|latexmath:[0.0]
 
 |_Temperature_
 |`&#176;F`
-|`K`
-|`0.5555555555555556 (= 5/9)`
-|`255.3722222222222 (= 273.15-32*5/9)`
+|latexmath:[\mathrm{K}]
+|latexmath:[0.5555555555555556 \ \left(= \frac{5}{9}\right)]
+|latexmath:[255.3722222222222 \ \left(= 273.15 - 32 \cdot \frac{5}{9}\right)]
 
 |_Percent by length_
 |`%/m`
-|`1/m`
-|`0.01`
-|`0.0`
+|latexmath:[\mathrm{m}^{-1}]
+|latexmath:[0.01]
+|latexmath:[0.0]
 
 |_Parts per million_
 |`ppm`
-|`1`
-|`1.0e-6`
-|`0.0`
+|latexmath:[1]
+|latexmath:[1.0 \cdot 10^{-6}]
+|latexmath:[0.0]
 
 |_Length_
 |`km`
-|`m`
-|`1000`
-|`0.0`
+|latexmath:[\mathrm{m}]
+|latexmath:[1000]
+|latexmath:[0.0]
 
 |_Length_
 |`yd`
-|`m`
-|`0.9144`
-|`0.0`
+|latexmath:[\mathrm{m}]
+|latexmath:[0.9144]
+|latexmath:[0.0]
 |====
 
 _Note that `Hz` is typically used as `Unit.name` for a frequency quantity, but it can also be used as `<DisplayUnit>` for an angular velocity quantity (since `revolution/s`)._
@@ -455,10 +457,25 @@ _When only one of <<input>> `v2` and <<output>> `v1`, connected with equation `v
 _When two variables v1 and v2 are connected and for both of them `<BaseUnit>` elements are defined, then they must have identical exponents of their `<BaseUnit>`._
 _If `factor` and `offset` are also identical, again the connection equation `v2 = v1` holds._
 _If `factor` and `offset` are not identical, the tool may either trigger an error or, if supported, perform a conversion; in other words, use the connection equation (in this case the `relativeQuantity` of the `<TypeDefinition>`, see below, has to be taken into account in order to determine whether `offset` shall or shall not be utilized):_
-+
-`factor(v1) * v1 + (if relativeQuantity(v1) then 0 else offset(v1)) = factor(v2) * v2 + (if relativeQuantity(v2) then 0 else offset(v2))` +
+
+[latexmath]
+++++
+\texttt{factor(v1)} \cdot \texttt{v1} + \left\{
+\begin{array}{ll}
+0 & \texttt{if relativeQuantity(v1) = true} \\
+\texttt{offset(v1)} & \texttt{if relativeQuantity(v1) = false}
+\end{array}
+\right.
+=
+\texttt{factor(v2)} \cdot \texttt{v2} + \left\{
+\begin{array}{ll}
+0 & \texttt{if relativeQuantity(v2) = true} \\
+\texttt{offset(v2)} & \texttt{if relativeQuantity(v2) = false}
+\end{array}
+\right.
+++++
 _where_ `relativeQuantity(v1) = relativeQuantity(v2)` _is required_.
-+
+
 _As a result, wrong connections can be detected (for example, connecting a force with an angle-based variable would trigger an error) and conversions between, say, US and SI units can be either automatically performed or, if not supported, an error is triggered as well._
 +
 _This approach is not satisfactory for variables belonging to different quantities that have, however, the same `<BaseUnit>`, such as quantities `Energy` and `Torque`, or `AngularVelocity` and `Frequency`._
@@ -476,8 +493,8 @@ _Example:_
 [latexmath]
 ++++
 \begin{align*}
-J \cdot \alpha = \tau \rightarrow [kg.m^2]*[rad/s^2] = [kg.m^2/s^2] & \quad \text{// o.k. ("rad" is treated as "1")} \\
-J \cdot \alpha = f \rightarrow [kg.m^2]*[rad/s^2] = [kg.m/s^2] & \quad \text{// error, since dimensions do not agree}
+J \cdot \alpha = \tau \rightarrow [\mathrm{kg} \cdot \mathrm{m}^2] \cdot [\mathrm{rad} \cdot \mathrm{s}^{-2}] = [\mathrm{kg} \cdot \mathrm{m}^2 \cdot \mathrm{s}^{-2}] & \quad \text{// o.k. ("rad" is treated as "1")} \\
+J \cdot \alpha = f \rightarrow [\mathrm{kg} \cdot \mathrm{m}^2] \cdot [\mathrm{rad} \cdot \mathrm{s}^{-2}] = [\mathrm{kg} \cdot \mathrm{m} \cdot \mathrm{s}^{-2}] & \quad \text{// error, since dimensions do not agree}
 \end{align*}
 ++++
 
@@ -488,11 +505,11 @@ _If no unit computation is needed, `rad` is propagated._
 _If a unit computation is needed and one of the involved units has `rad` as a `<BaseUnit>`, then unit propagation is not possible._
 _Examples:_
 +
-- _a = b + c, and `Unit` of c is provided, but not `Unit` of a and b:_ +
+- _latexmath:[a = b + c], and `Unit` of c is provided, but not `Unit` of a and b:_ +
 _The Unit definition of `c` (in other words, `Unit.name`, `<BaseUnit>`, `<DisplayUnit>`) is also used for `a` and `b`._
 _For example, if BaseUnit(c) = `rad/s`, then BaseUnit(a) = BaseUnit(b) = `rad/s`._
 +
-- _a = b*c, and `Unit` of a and of c is provided, but not `Unit` of b:_ +
+- _latexmath:[a = b \cdot c], and `Unit` of a and of c is provided, but not `Unit` of b:_ +
 _If `rad` is either part of the `<BaseUnit>` of `a` and/or of `c`, then the `<BaseUnit>` of `b` cannot be deduced (otherwise it can be deduced)._
 _Example: If `BaseUnit(a) = kg.m/s2` and `BaseUnit(c) = m/s2`, then the `BaseUnit(b)` can be deduced to be `kg`._
 _In such a case `Unit.name` of b cannot be deduced from the `Unit.name` of `a` and `c`, and a tool would typically construct the `Unit.name` of `b` from the deduced `<BaseUnit>`.]_
@@ -515,8 +532,8 @@ A value latexmath:[v_{\mathit{unit}}] in `Unit` is converted to a value latexmat
 ++++
 v_{\mathit{display}} =
 \left\{\begin{array}{ll}
-\texttt{factor} *          v_{\mathit{unit}}  + \texttt{offset} &\text{if} \; \texttt{inverse = false} \\
-\texttt{factor} * \frac{1}{v_{\mathit{unit}}}  &\text{if} \; \texttt{inverse = true}
+\texttt{factor} \cdot          v_{\mathit{unit}}  + \texttt{offset} &\text{if} \; \texttt{inverse = false} \\
+\texttt{factor} \cdot \frac{1}{v_{\mathit{unit}}}  &\text{if} \; \texttt{inverse = true}
 \end{array}\right.
 ++++
 
@@ -526,10 +543,10 @@ _For example, if latexmath:[{T_K}] is the temperature value of `Unit.name` (in `
 
 [latexmath]
 ++++
-T_F = (9/5) * (T_K - 273.15) + 32
+T_F = \frac{9}{5} \cdot (T_K - 273.15) + 32
 ++++
 
-_and therefore, `factor = 1.8 (=9/5)` and `offset = -459.67 (= 32 - 273.15*9/5)`._
+_and therefore, latexmath:[\texttt{factor} = 1.8 \ \left(= \frac{9}{5}\right)] and latexmath:[\texttt{offset} = -459.67 \ \left(= 32 - 273.15 \cdot \frac{9}{5}\right)]._
 
 _Both the `DisplayUnit.name` definitions as well as the `Unit.name` definitions are used in the variable elements._
 
@@ -641,7 +658,7 @@ _[If, for example, an `<Enumeration>` is defined with `name1 = -4`, `name2 = 1`,
 If not defined and no other information about the nominal value is available, then `nominal = 1` is assumed.
 For array variables, this nominal value applies to all elements of the array. +
 _[The nominal value of a variable can be, for example, used to determine the absolute tolerance for this variable as needed by numerical algorithms:_ +
-`absoluteTolerance = nominal * tolerance * 0.01` +
+`absoluteTolerance = nominal \cdot tolerance \cdot 0.01` +
 _where `tolerance` is, for example, the relative tolerance defined in <<DefaultExperiment>>.]_
 
 |`unbounded`
@@ -794,8 +811,13 @@ image::images/schema/DefaultExperiment.png[width=60%, align="center"]
 [[stepSize,`stepSize`]]`<DefaultExperiment>` consists of the optional default start time, stop time, relative tolerance, and step size for a simulation run.
 A tool may ignore this information. +
 _[However, it is convenient for a user that <<startTime>>, <<stopTime>>, <<tolerance>> and <<stepSize>> have already a meaningful default value for the model at hand.]_ +
-Furthermore, for Co-Simulation FMUs the <<stepSize>> defines the preferred <<communicationStepSize>>.
 <<startTime>>, <<stopTime>> and <<stepSize>> refer to the unit of the <<independent>> variable.
+<<stepSize>> defines the preferred <<communicationStepSize>> for Co-Simulation.
+For Model Exchange and Scheduled Execution <<stepSize>> has no defined meaning. 
+_[This does not prohibit the use of <<stepSize>> in the context of Model Exchange._
+_For example, a fixed step size solver can use it as a default step size._
+_A variable step size solver can use the <<stepSize>> as an initial step size or as result grid for the output._ 
+_Since the required <<stepSize>> depends on the solver itself a defined meaning of <<stepSize>> for Model Exchange is impossible.]_
 
 [[ModelVariables,`<ModelVariables>`]]
 ==== Model Variables
@@ -965,8 +987,11 @@ If a <<structuralParameter,`structural parameter`>> is referenced in <<Dimension
 The `min` attribute might still be 0.
 
 The default of <<causality>> is <<local>>. +
-A continuous-time <<state>> or an event indicator must have <<causality>> = <<local>> or <<output>>, see also <<ModelStructure>>. +
-The causality of variables of type <<Clock>> must be either <<input>>, <<output>> or <<local>>.
+A continuous-time <<state>> or an event indicator must have <<causality>> = <<local>> or <<output>>, see also <<ModelStructure>>.
+
+The causality of variables of type <<Clock>> must be either <<input>>, <<output>> or <<local>>. +
+For Clocks the <<causality>> indicates the information flow of the activation of the Clock. +
+Only for triggered Clocks, the <<causality>> also indicates the information flow of the timing.
 
 |`variability`
 |
@@ -1001,11 +1026,11 @@ During <<IntermediateUpdateMode>>, <<discrete>> variables are not allowed to cha
 
 The <<variability>> of <<Clock,Clocks>> must be <<discrete>>.
 The <<variability>> of <<clocked-variable,`clocked variables`>> must be <<discrete>> or <<tunable>>.
-The default for variables of causality `input`, `output` or `local` of type other than `<Float32>` or `<Float64>` is <<discrete>>.
+The default for variables of causality `input`, `output` or `local` of type other than `Float32` or `Float64` is <<discrete>>.
 
 [[continuous,`continuous`]]
-`= continuous`: Only variables of type `<Float32>` or `<Float64>` may be <<continuous>>.
-The default for variables of type `<Float32>` and `<Float64>` and causality other than `parameter`, `structural parameter` or `calculated parameter` is <<continuous>>.
+`= continuous`: Only variables of type `Float32` or `Float64` may be <<continuous>>.
+The default for variables of type `Float32` and `Float64` and causality other than <<parameter>>, <<structuralParameter>> or <<calculatedParameter>> is <<continuous>>.
 Variables with <<variability>> `continuous` may change in <<InitializationMode>> and in super state <<Initialized>>.
 
 For more explanations on value changes see <<smoothness>>.
@@ -1400,9 +1425,9 @@ All variables listed in these elements must have attribute `derivative`.
 |`reinit`
 |[[reinit,`reinit`]]
 Only used in Model Exchange, ignored for the other interface types.
-May only be present for a continuous-time <<state>>. +
-If `true`, <<state>> may be reinitialized by the FMU in <<EventMode>>. +
-If `false`, <<state>> will not be reinitialized.
+May only be present for a <<state,continuous-time state>>. +
+If `true`, the <<state>> may be <<reinitialization,reinitialized>> by the FMU in <<EventMode>>. +
+If `false`, the <<state>> will not be <<reinitialization,reinitialized>>.
 
 |====
 
@@ -1478,7 +1503,6 @@ approx
 ^|[.underline]#calculated# +
 exact +
 approx
-^|--
 ^|--
 |====
 
@@ -1589,7 +1613,7 @@ _[Dependencies of individual array elements can be retrieved during runtime usin
 [#figure-schema-ModelStructure]
 image::images/schema/ModelStructure.png[width=90%]
 
-Note that attribute <<dependenciesKind>> for element <<InitialUnknown>> has less enumeration values as <<dependenciesKind>> in the other lists, as detailed in <<table-model-structure-elements>>.
+Note that attribute <<dependenciesKind>> for element <<InitialUnknown>> has less enumeration values as <<dependenciesKind>> in the other lists, as detailed in <<table-output-der-initialUnknown-details>>.
 
 <<ModelStructure>> consists of the elements detailed in <<table-model-structure-elements>> (see also <<figure-schema-ModelStructure>>; the symbols of the mathematical equations describing the dependencies are defined in <<concepts-model-exchange>>):
 
@@ -1678,7 +1702,7 @@ _If an event indicator shall not be exposed, or if event indicators are not stat
 Elements <<Output>>, <<ContinuousStateDerivative>>, <<ClockedState>>, <<InitialUnknown>>, and <<EventIndicator>> have (partially) the following attributes:
 
 .<<Output>>, <<ContinuousStateDerivative>>, <<ClockedState>>, <<InitialUnknown>>, and <<EventIndicator>> attribute details.
-[[table-output-der-initialUknown-details]]
+[[table-output-der-initialUnknown-details]]
 [cols="1,5a", options="header"]
 |====
 |Attribute
@@ -1890,10 +1914,10 @@ The terminal name must be unique on each level.
 
 [[matchingRule,`matchingRule`]]
 The normalized string attribute `matchingRule` describes the rules for variable matching in a connection of terminals.
-As detailed in <<table-predefined-matching-rules>>, there are three predefined matching rules: `plug`, `bus`, and `sequence`.
+As detailed in <<table-predefined-matching-rules>>, there are four predefined matching rules: `plug`, `bus`, `sequence`, and `none`.
 Other standards may define new matching rules.
-In order to avoid ambiguities and conflicts, rule names must follow the reverse domain notation of a domain that is controlled by the entity defining the semantics and content of the additional entries.
-The rule names beginning with `org.modelica` and `org.fmi-standard` are explicitly reserved for use by layered standards defined by Modelica Association or its own projects (<<MAP,MAPs>>).
+In order to avoid ambiguities and conflicts, rule names must follow the <<reverse-DNS,reverse domain name notation>> of a domain that is controlled by the entity defining the semantics and content of the additional entries.
+Such rule definitions can be part of a <<LS-reverse-DNS,layered standard>>, for example.
 
 .Predefined matching rules.
 [#table-predefined-matching-rules]
@@ -1917,11 +1941,17 @@ An importer may connect terminals if some or no terminal member variables are pr
 |Matching of the variables is based on the order of the terminal member variables.
 An importer should connect terminals only if the number of member variables matches.
 
+[[none,`none`]]
+|`none`
+|Matching of the variables is not intended by the creator of the FMU. 
+However, an importer may still connect terminals based on additional information.
+
 |====
 
 [[terminalKind,`terminalKind`]]
 The normalized string `terminalKind` is an optional attribute.
-Other standards may define terminal kinds.
+Other standards may define terminal kinds. 
+It is strongly recommended to use <<reverse-DNS, reverse domain name notation>> to define a `terminalKind`.
 It is intended that the `terminalKind` is used to define domain specific member variable sequences, member names and order, or high level restrictions for connections.
 
 _[Externally defined terminal kinds should refer to a predefined `matchingRule`, if possible._
@@ -1957,6 +1987,7 @@ Therefore, the `memberName` attribute is required for `plug` and `bus` and must 
 The `memberName` is not required for `matchingRule` `sequence`.
 
 The normalized string `variableKind` is used to provide general information about the variable.
+It is strongly recommended to use <<reverse-DNS, reverse domain name notation>> to define a `variableKind`.
 This information defines how the connection of this variable has to be implemented (e.g. Kirchhoff's current law or common signal flow).
 
 The predefined `variableKind` are:
@@ -2332,7 +2363,7 @@ image::images/schema/Library.png[width=50%]
 
 |`version`
 |Version specifier of the library as defined in https://www.python.org/dev/peps/pep-0440/#version-specifiers[PEP 440].
-The characters `>` (greater-than) and `<` (less-than) must be escaped as `&gt;` and `&lt;`.
+The characters `>` (greater-than) and `<` (less-than) must be escaped as `&amp;gt;` and `&amp;lt;`.
  _[For example `2.5`, `>=2.0,<3.0` or `>=1.0,!=1.2`]_.
 
 |`external`

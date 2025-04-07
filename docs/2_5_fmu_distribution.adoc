@@ -89,7 +89,7 @@ The header files `fmi3PlatformTypes.h`, `fmi3FunctionTypes.h` and `fmi3Functions
 A binary FMU must contain the binary files - that are needed at linking or loading time - of the FMU for all supported platforms in this folder.
 To use the binaries of a specific platform, all items in that platform-specific binary folder must be unpacked at the same location as the binary `<modelIdentifier>.{dll|dylib|so}`.
 
-====== Platform Tuple Definition [[platform-tupe-definition]]
+====== Platform Tuple Definition [[platform-tuple-definition]]
 
 The names of the binary directories are standardized by the "platform tuple".
 Further names can be introduced by vendors.
@@ -138,7 +138,7 @@ Operating system `<sys>`::
 |====
 
 When shipping the implementation as a static library an optional ABI (Application Binary Interface) directory `<arch>-<sys>{-<abi>}` may be added to separate binaries for different toolchains on the same platform and a description must be provided in `documentation/staticLinking.{txt|html}` that contains all necessary information to link against the provided library _[e.g. supported compilers]_.
-The ABI directory must only contain lowercase characters `a...z`, digits `0...9`, and underscores `_` and start with a lowercase character `a...z` _[e.g. `x86_64-windows-msvc140mt` for a static library for 64-bit Windows generated with Visual Studio 2015 with `/MT` flag]_.
+The ABI directory must only contain lowercase characters `a...z`, digits `0...9`, and underscores `$$_$$` and start with a lowercase character `a...z` _[e.g. `x86_64-windows-msvc140mt` for a static library for 64-bit Windows generated with Visual Studio 2015 with `/MT` flag]_.
 
 ====== Platform Tuple Examples [[platform-tuple-examples]]
 
@@ -205,8 +205,7 @@ For more information, please consult the https://modelica.github.io/fmi-guides/m
 
 The ZIP archive may contain additional subdirectories within `extra/` that can be used to store additional data, e.g. for the implementation of <<VersioningLayered,layered standards>>.
 
-In order to avoid ambiguities and conflicts, the names of these subdirectories should use the reverse domain notation of a domain that is controlled by the entity defining the semantics and content of the additional entries _[(for example `extra/com.example/SimTool/meta.xml` or `extra/org.example.stdname/data.asd`)]_.
-The use of subdirectories beginning with `org.modelica` and `org.fmi-standard` is explicitly reserved for use by <<VersioningLayered,layered standards>> defined by Modelica Association or its own projects (<<MAP,MAPs>>), i.e. layered standards defined outside the Modelica Association must not use subdirectory names beginning with these prefixes.
+In order to avoid ambiguities and conflicts, the names of these subdirectories should use the <<reverse-DNS,reverse domain name notation>> of a domain that is controlled by the entity defining the semantics and content of the additional entries _[(for example `extra/com.example/SimTool/meta.xml` or `extra/org.example.stdname/data.asd`)]_.
 It is explicitly allowed for tools and users other than the original creator of an FMU to modify, add or delete entries in the `extra/` directory without affecting the validity of the FMU in all other aspects.
 Specifically all validation or digital signature schemes used to protect the content of the FMU should take the variability of extra file content into account _[(for example by having separate checksums or signatures for FMU core content and extra content, or not having signatures at all for extra content)]_.
 

@@ -221,8 +221,7 @@ _[Examples for usage of <<fmi3Discard>> are_
 The call failed.
 The output argument values are undefined and the simulation must not be continued.
 Function <<logMessage>> should be called by the FMU with further information before returning this status, respecting the current logging settings.
-If a function returns <<fmi3Error>>, it is possible to restore a previously retrieved FMU state by calling <<fmi3SetFMUState>>.
-Otherwise <<fmi3FreeInstance>> or <<fmi3Reset>> must be called.
+If a function returns <<fmi3Error>>, it is possible to restore a previously retrieved FMU state by calling <<fmi3SetFMUState>> or to reset the instance by calling <<fmi3Reset>>.
 When detecting illegal arguments or a function call not allowed in the current state according to the respective state machine, the FMU must return <<fmi3Error>>.
 Other instances of this FMU are not affected by the error. +
 _[For example, when setting a constant with a call to <<get-and-set-variable-values,`fmi3Set{VariableType}`>>, then the function must return with an error (<<fmi3Error,`fmi3Status = fmi3Error`>>.]_
@@ -284,7 +283,9 @@ All variables are listed in <<modelDescription.xml>> as elements of `<fmiModelDe
 
 They are identified with a unique handle called <<valueReference, value reference>>.
 
-The attribute <<causality>> defines the direction of the information flow with respect to the FMU (e.g. <<input>>, <<output>>, <<parameter>>).
+The attribute <<causality>> defines the direction of the information flow with respect to the FMU (e.g. <<input>>, <<output>>, <<parameter>>). +
+For Clocks the <<causality>> indicates the information flow of the activation of the Clock. +
+Only for triggered Clocks, the <<causality>> also indicates the information flow of the timing.
 
 Variables, except Clocks, may be scalar or multi-dimensional arrays.
 Clocks must always be scalar.
@@ -536,7 +537,11 @@ Input Clock::
 is a variable of type Clock with <<causality>> = <<input>>.
 In Model Exchange and Co-Simulation, when input Clocks tick, the importer will activate the input Clocks using <<fmi3SetClock>>.
 In Scheduled Execution, when input Clocks tick, the importer will activate the associated model partitions (but not the input Clocks) using <<fmi3ActivateModelPartition>>.
-While the importer is the source of the actual Clock activations, the timing of the Clocks is defined by the FMU, either through the <<modelDescription.xml>> or calling <<fmi3GetInterval>>, or by another Clock connected to a <<triggered>> input Clock.
+
+The importer is the source of the actual Clock activations of input Clocks.
+For time-based input Clocks, the timing is defined by the FMU, either through the <<modelDescription.xml>> or by the importer calling <<fmi3GetInterval>>.
+For <<triggered>> input clocks, the timing is determined by the importer.
+_[The timing could be given by a triggered output Clock, or a time-based input Clock of a connected FMU, or any other source.]_
 
 Output Clock::
 [[outputClock, `output Clock`]]
@@ -711,7 +716,7 @@ is a time-based Clock whose next interval is unchangeably known right after the 
 +
 The next Clock tick at time instant latexmath:[t_i] is defined as: +
 latexmath:[\begin{align*}
-t_0 &:= t_{\mathit{start}} + T_{\mathit{interval, 0}} \\
+t_0 &:= t_{\mathit{start}} + T_{\mathit{interval}, 0} \\
 t_i &:= t_{i-1} + T_{\mathit{interval, i}} \qquad i = 1,2,3,{...}
 \end{align*}]
 
@@ -721,7 +726,7 @@ t_i &:= t_{i-1} + T_{\mathit{interval, i}} \qquad i = 1,2,3,{...}
 [cols="1,2"]
 |===
 
-|latexmath:[T_{\mathit{interval, 0}} \geq 0]
+|latexmath:[T_{\mathit{interval}, 0} \geq 0]
 |The time interval from latexmath:[t_{\mathit{start}}] to first Clock tick.
 Must be retrieved using <<fmi3GetInterval>> in <<InitializationMode>>.
 
@@ -737,7 +742,7 @@ The return argument <<qualifiers>> of <<fmi3GetInterval>> is used to indicate if
 +
 The next Clock tick at time instant latexmath:[t_i] is defined as: +
 latexmath:[\begin{align*}
-t_0 &:= t_{\mathit{start}} + T_{\mathit{interval, 0}} \\
+t_0 &:= t_{\mathit{start}} + T_{\mathit{interval}, 0} \\
 t_i &:= t_{\mathit{event}} + T_{\mathit{interval, i}} \qquad i = 1,2,3,{...}
 \end{align*}]
 
@@ -747,7 +752,7 @@ t_i &:= t_{\mathit{event}} + T_{\mathit{interval, i}} \qquad i = 1,2,3,{...}
 [cols="1,2"]
 |===
 
-|latexmath:[T_{\mathit{interval, 0}} \geq 0]
+|latexmath:[T_{\mathit{interval}, 0} \geq 0]
 |The time interval from latexmath:[t_{\mathit{start}}] to the first Clock tick.
 Must be retrieved using <<fmi3GetInterval>> in <<InitializationMode>>.
 
@@ -828,6 +833,10 @@ _[This means that variables referenced by <<clocks>> and <<dependencies>> are no
 For restrictions on when to call which of the following functions for <<table-overview-clocks,each Clock type>>, see <<table-overview-clocks>>.
 
 <<fmi3SetClock>> must not be called in Scheduled Execution, instead <<fmi3ActivateModelPartition>> must be called.
+
+_[The Clocks API function argument names <<intervals>>, <<shifts>>, <<counters>> and <<resolutions>> are chosen to match the naming used in link:https://specification.modelica.org/maint/3.6/synchronous-language-elements.html#clock-constructors[Modelica Clock Constructors]._
+_This commonality of naming does not imply any normative reference to the semantics of Modelica._
+_Mathematically speaking, the arguments <<counters>> and <<resolutions>> in the fraction variant of these functions serve as numerators and denominators of fractional representations of the corresponding floating-point number arguments of the decimal variant.]_
 
 [[fmi3SetInterval,`fmi3SetInterval`]]
 For <<table-overview-clocks,some Clock types>>, the interval must be set by the environment for the current time instant by the function <<fmi3SetIntervalDecimal>> or <<fmi3SetIntervalFraction>>.
@@ -1024,8 +1033,10 @@ Depending on the phase of the solver algorithm, different FMU variables need to 
 FMI allows selective retrieval of FMU variables with specific get functions (e.g. <<get-and-set-variable-values,`fmi3Get{VariableType}`>>, <<fmi3GetEventIndicators>>, <<fmi3GetContinuousStateDerivatives>>).
 This enables computation on demand with subsequent calls returning the same value until some set operation requires re-computation.
 
-For example:
+For example,
+
 * during the iteration of an integrator step, only the state derivatives need to be computed, provided the <<output>> of an FMU is not connected, or
+
 * when localizing <<state-event,state events>>, only the computation of event indicators may be required.
 
 Because specific set functions exist (<<get-and-set-variable-values,`fmi3Set{VariableType}`>>, <<fmi3SetTime>>, <<fmi3SetContinuousStates>>), caching algorithms can be applied to reuse already computed values.
@@ -1144,7 +1155,7 @@ with the Jacobian
 \end{bmatrix}
 ++++
 
-where latexmath:[\mathbf{v}_{\mathit{known}}] are the latexmath:[n] knowns, and latexmath:[\mathbf{g}] are the latexmath:[m] functions to calculate the latexmath:[m] unknown variables latexmath:[\mathbf{v}_{\mathit{unknwon}}]  from the knowns.
+where latexmath:[\mathbf{v}_{\mathit{known}}] are the latexmath:[n] knowns, and latexmath:[\mathbf{g}] are the latexmath:[m] functions to calculate the latexmath:[m] unknown variables latexmath:[\mathbf{v}_{\mathit{unknown}}]  from the knowns.
 
 Both functions can also be used to construct the partial derivative matrices.
 The functions may only be called if their availability is indicated by the attributes <<providesDirectionalDerivatives>> and <<providesAdjointDerivatives>>, respectively.
@@ -1210,7 +1221,7 @@ _Note that a direct implementation of this function with analytic derivatives:_
 
 (b) _Initializes all seed-values to zero; so in the <<example-directional-derivatives,above example>>: latexmath:[{\Delta x = \Delta u_1 = \Delta u_3 = \Delta u_4 = 0}]_
 
-(c) _Computes the directional derivative with the seed-values provided in the function arguments; so in the <<example-directional-derivatives,above example>>: latexmath:[{v_{\mathit{sensitivity}} = \Delta y_1 (\Delta x = 0, \Delta u_1 = 1, \Delta u_3 = 0, \Delta u_4 = 0)}]] and latexmath:[{v_{\mathit{sensitivity}} = \Delta y_1 (\Delta x = 0, \Delta u_1 = 0, \Delta u_3 = 1, \Delta u_4 = 0)}]]_
+(c) _Computes the directional derivative with the seed-values provided in the function arguments; so in the <<example-directional-derivatives,above example>>: latexmath:[{v_{\mathit{sensitivity}} = \Delta y_1 (\Delta x = 0, \Delta u_1 = 1, \Delta u_3 = 0, \Delta u_4 = 0)}] and latexmath:[{v_{\mathit{sensitivity}} = \Delta y_1 (\Delta x = 0, \Delta u_1 = 0, \Delta u_3 = 1, \Delta u_4 = 0)}]]_
 
 _[Note, function <<fmi3GetDirectionalDerivative>> can be utilized for the following purposes:_
 
@@ -1220,7 +1231,7 @@ _[Note, function <<fmi3GetDirectionalDerivative>> can be utilized for the follow
 
 - _If the FMU shall be linearized, the same <<derivative,`derivatives`>> as in the previous item are needed._
 
-- _If the FMU is used as the model for an extended Kalman filter, latexmath:[{\frac{\partial \mathbf{f}}{\partial \mathbf{x}}}] and latexmath:[{\frac{\partial \mathbf{g}}{\partial \mathbf{x}}}] are needed._
+- _If the FMU is used as the model for an extended Kalman filter, latexmath:[{\frac{\partial \mathbf{f}}{\partial \mathbf{x}}}] and latexmath:[{\frac{\partial \mathbf{g}}{\partial \mathbf{x}}}] are needed._]
 
 _If a dense matrix shall be computed, the columns of the matrix can be easily constructed by successive calls of <<fmi3GetDirectionalDerivative>>._
 _For example, constructing the system Jacobian latexmath:[{\mathbf{J} = \frac{\partial \mathbf{f}}{\partial \mathbf{x}}}] as dense matrix can be performed in the following way:_

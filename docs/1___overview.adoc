@@ -43,22 +43,22 @@ The following features have been removed:
 
 * The asynchronous mode for FMUs known from FMI 2.0 CS: this mode was not supported by tools and it can be suitably replaced by Co-Simulation implementations that control the asynchronous computation of FMUs via separate processes/threads created for each FMU.
 
-* The FMI `fmi2SetRealInputDerivatives` function: replaced by enabling the setting of inputs in <<IntermediateUpdateMode>>.
+* The FMI function `fmi2SetRealInputDerivatives`: replaced by enabling the setting of inputs in <<IntermediateUpdateMode>>.
 
 Parallel to the new standard features, the FMI Design Community has improved the standard quality by:
 
 * modernizing the development methodology (e.g. moving to github and following the github process) and a text-based source format,
 
-* publishing the FMI Standard now primarily as html to support easier navigation within the document and viewing on a wider range of devices,
+* publishing the FMI Standard now primarily as HTML to support easier navigation within the document and viewing on a wider range of devices,
 
 * supplying a large set of continuously validated Reference FMUs, and
 
 * integrating within the FMI Standard only validated C-code, XML and XSD snippets to reduce redundancy and ensure correctness.
 
 
-==== Changes in FMI 3.0.1 [[fmi-301]]
+==== Changes in FMI 3.0.x
 
-Clarifications and fixes in FMI 3.0.1 are listed in the https://github.com/modelica/fmi-standard/releases[Release notes on Github.]
+Clarifications and fixes of all FMI 3.0 patch releases (FMI 3.0.x) are listed in the https://github.com/modelica/fmi-standard/releases[release notes on GitHub].
 
 === Overview
 
@@ -119,6 +119,7 @@ image::images/co-simulation-data-flow.svg[width=40%, align="center"]
 The Scheduled Execution interface exposes individual <<model-partition, model partitions>>.
 A scheduler provided by the <<importer>> can control the execution of each model partition separately.
 In some ways the Scheduled Execution interface has similarities to the Model Exchange interface: the first externalizes a scheduling algorithm usually found in a controller algorithm (see <<fmi-for-scheduled-execution>>) and the second interface externalizes the ODE/DAE solver.
+_[See also https://modelica.github.io/fmi-guides/main/fmi-guide/#_use_cases_for_scheduled_execution[Use-cases for Scheduled Execution] in the FMI 3.0 Implementers' Guide.]_
 
 .Schematic view of data flow between user, the scheduler of the importer and model partitions of the FMU for Scheduled Execution
 [#figure-scheduled-execution-data-flow]
@@ -290,7 +291,7 @@ Allocator must free::
 All memory (and other resources) allocated by the FMU are freed (released) by the FMU.
 Likewise, resources allocated by the importer are released by the importer.
 +
-Reason: this helps to prevent memory leaks and runtime errors due to incompatible runtime environments for different components.
+Reason: This helps to prevent memory leaks and runtime errors due to incompatible runtime environments for different components.
 
 Immutable strings::
 All strings passed as arguments or returned are read-only and must not be modified by the receiver.
