@@ -35,7 +35,7 @@ To allow implementation of more robust and efficient co-simulation algorithms, t
 
 * <<Clock,Clocks and clocked variables>>.
 
-Besides <<directionDerivatives,directional derivatives>>, now <<adjointDerivatives,adjoined derivatives>> of variables can be obtained.
+Besides <<directionDerivatives,directional derivatives>>, now <<adjointDerivatives,adjoint derivatives>> of variables can be obtained.
 
 The newly introduced <<BuildConfiguration>> simplifies the integration of source-code FMUs.
 
@@ -43,27 +43,27 @@ The following features have been removed:
 
 * The asynchronous mode for FMUs known from FMI 2.0 CS: this mode was not supported by tools and it can be suitably replaced by Co-Simulation implementations that control the asynchronous computation of FMUs via separate processes/threads created for each FMU.
 
-* The FMI `fmi2SetRealInputDerivatives` function: replaced by enabling the setting of inputs in <<IntermediateUpdateMode>>.
+* The FMI function `fmi2SetRealInputDerivatives`: replaced by enabling the setting of inputs in <<IntermediateUpdateMode>>.
 
 Parallel to the new standard features, the FMI Design Community has improved the standard quality by:
 
 * modernizing the development methodology (e.g. moving to github and following the github process) and a text-based source format,
 
-* publishing the FMI Standard now primarily as html to support easier navigation within the document and viewing on a wider range of devices,
+* publishing the FMI Standard now primarily as HTML to support easier navigation within the document and viewing on a wider range of devices,
 
 * supplying a large set of continuously validated Reference FMUs, and
 
 * integrating within the FMI Standard only validated C-code, XML and XSD snippets to reduce redundancy and ensure correctness.
 
 
-==== Changes in FMI 3.0.1 [[fmi-301]]
+==== Changes in FMI 3.0.x
 
-Clarifications and fixes in FMI 3.0.1 are listed in the https://github.com/modelica/fmi-standard/releases[Release notes on Github.]
+Clarifications and fixes of all FMI 3.0 patch releases (FMI 3.0.x) are listed in the https://github.com/modelica/fmi-standard/releases[release notes on GitHub].
 
 === Overview
 
 The Functional Mock-up Interface (FMI) defines a ZIP archive and an application programming interface (API) to exchange dynamic models using a combination of XML files, binaries and C code: the Functional Mock-up Unit (FMU).
-The API is used by a simulation environment, the importer, to create one or more instances of an FMU and to simulate them, typically together with other models.
+The API is used by the importer (e.g., a simulator or an optimizer) to create one or more instances of an FMU and to execute them, typically together with other models.
 The FMI defines three interface types:
 
 * <<fmi-for-co-simulation,Co-Simulation (CS)>> where the FMU typically contains its own solver or scheduler,
@@ -98,31 +98,33 @@ The ZIP file contains the FMI <<modelDescription.xml>>, the binaries and librari
 
 The Model Exchange interface exposes an ODE to an external solver of an importer.
 Models are described by differential, algebraic and discrete equations with time-, state- and step-events.
-That integration algorithm of the importer, usually a ODE/DAE solver, is responsible for advancing time, setting states, handling events, etc.
+That integration algorithm of the importer, usually a ODE/DAE solver, is responsible for advancing time, setting continuous states, handling events, etc.
 (See <<fmi-for-model-exchange>>.)
 
 .Schematic view of data flow between user, the solver of the importer and the FMU for Model Exchange
 [#figure-model-exchange-data-flow]
-image::images/model-exchange-data-flow.svg[width=40%, align="center"]
+image::images/model-exchange-data-flow.svg[width=450]
 
 ==== FMI for Co-Simulation (CS)
 
-The Co-Simulation interface is designed both for the coupling of simulation tools, and the coupling of subsystem models, exported by a modeling environment together with their solvers as runnable code.
+The Co-Simulation interface is designed for the coupling of subsystem models, exported by a modeling environment including any necessary simulation code (e.g., solvers), or using an external simulator.
 (See <<fmi-for-co-simulation>>.)
 
 .Schematic view of data flow between user, the co-simulation algorithm of the importer and the FMU for Co-Simulation
 [#figure-co-simulation-data-flow]
-image::images/co-simulation-data-flow.svg[width=40%, align="center"]
+image::images/co-simulation-data-flow.svg[width=450]
 
 ==== FMI for Scheduled Execution (SE)
 
 The Scheduled Execution interface exposes individual <<model-partition, model partitions>>.
-A scheduler provided by the <<importer>> can control the execution of each model partition separately.
+A scheduler provided by the importer can control the execution of each model partition separately.
 In some ways the Scheduled Execution interface has similarities to the Model Exchange interface: the first externalizes a scheduling algorithm usually found in a controller algorithm (see <<fmi-for-scheduled-execution>>) and the second interface externalizes the ODE/DAE solver.
+
+NOTE: See also https://modelica.github.io/fmi-guides/main/fmi-guide/#_use_cases_for_scheduled_execution[Use-cases for Scheduled Execution] in the FMI 3.0 Implementers' Guide.
 
 .Schematic view of data flow between user, the scheduler of the importer and model partitions of the FMU for Scheduled Execution
 [#figure-scheduled-execution-data-flow]
-image::images/scheduled-execution-data-flow.svg[width=40%, align="center"]
+image::images/scheduled-execution-data-flow.svg[width=600]
 
 ==== Feature Overview of the Interface Types
 
@@ -130,7 +132,7 @@ Co-Simulation FMUs contain all code necessary to abstract away the details of th
 This simplifies the importer compared to Model Exchange and Scheduled Execution, at the cost of reduced flexibility of use.
 
 .Simplicity of import versus flexibility of use
-image::images/fmi-types-overview.svg[width=50%, align="center"]
+image::images/fmi-types-overview.svg[width=550]
 
 <<table-overview-features>> gives a non-normative overview of the features of the different interface types.
 
@@ -158,7 +160,7 @@ image::images/fmi-types-overview.svg[width=50%, align="center"]
 |Possibly
 |icon:times[]
 
-|<<eventIndicator,Event Indicators>>
+|<<fmi3GetEventIndicators,Event Indicators>>
 |icon:check[]
 |icon:times[]
 |icon:times[]
@@ -171,7 +173,7 @@ image::images/fmi-types-overview.svg[width=50%, align="center"]
 |<<IntermediateUpdateMode,Intermediate Update>> or <<ClockUpdateMode,Clock Update>>
 |Includes similar or better mechanism
 |icon:check[]
-|Signal output <<Clock>> ticks: icon:check[] +
+|Signal output <<Clock>> activations: icon:check[] +
 Inputs/Outputs: icon:times[]
 
 |<<Clock,Clocks>>
@@ -196,7 +198,7 @@ Expressivity::
 The FMI provides the necessary features to package models of different domains, such as multi-body and virtual ECUs, into an FMU.
 
 Stability::
-The FMI is expected to be supported by many simulation tools worldwide.
+The FMI is expected to be supported by many importers worldwide.
 Implementing such support is a major investment for tool vendors.
 Stability and backwards compatibility of the FMI has therefore high priority.
 
@@ -250,7 +252,7 @@ The inputs and outputs of these FMUs can be connected with direct feedthrough.
 Moreover, an FMU may contain nested FMUs.
 
 Numerical Robustness::
-The FMI standard allows problems which are numerically critical (for example, <<time event,time event>> and <<state event,state events>>, multiple sample rates, stiff problems) to be treated in a robust way.
+The FMI standard allows problems which are numerically critical (for example, <<time-event,time events>> and <<state-event,state events>>, multiple sample rates, stiff problems) to be treated in a robust way.
 
 Hide cache::
 A typical FMU will cache computed results for later reuse.
@@ -260,11 +262,11 @@ Reason: First, the FMI should not force an FMU to implement a certain caching po
 Second, this helps to keep the FMI simple.
 To help implement this cache, the FMI provides explicit methods called by the importer for setting properties that invalidate cached data.
 An FMU that chooses to implement a cache may maintain a set of "dirty" flags, hidden from the importer.
-A get method, for example to a state, will then either trigger a computation, or return cached data, depending on the value of these flags.
+A get method, for example to a continuous state, will then either trigger a computation, or return cached data, depending on the value of these flags.
 
 Support numerical solvers::
 A typical importer for Model Exchange FMUs uses numerical solvers.
-These solvers require vectors for <<state,states>>, <<derivative,`derivatives`>> and zero-crossing functions.
+These solvers require vectors for <<continuous-state,continuous states>>, <<derivative,`derivatives`>> and zero-crossing functions.
 The FMU directly fills the values of such vectors provided by the solvers.
 +
 Reason: minimize execution time.
@@ -290,7 +292,7 @@ Allocator must free::
 All memory (and other resources) allocated by the FMU are freed (released) by the FMU.
 Likewise, resources allocated by the importer are released by the importer.
 +
-Reason: this helps to prevent memory leaks and runtime errors due to incompatible runtime environments for different components.
+Reason: This helps to prevent memory leaks and runtime errors due to incompatible runtime environments for different components.
 
 Immutable strings::
 All strings passed as arguments or returned are read-only and must not be modified by the receiver.
@@ -320,13 +322,12 @@ Properties that might be additionally needed for trajectory optimization, for ex
 
 === How to Read This Document
 
-The core of this document is the description of the state machines and their states for each of the three interface types, each interface type in its own section.
-Each state description starts with a brief state's purpose, then the mathematical model in a table linking formulas with C-API functions, and finally descriptions of all allowed functions for this particular state.
+The core of this document is the description of the state machines and their modes for each of the three interface types, each interface type in its own section.
+Each mode description starts with a brief mode's purpose, then the mathematical model in a table linking formulas with C-API functions, and finally descriptions of all allowed functions for this particular mode.
 
 To keep the descriptions brief and redundancy low, <<fmi-common-concepts,common concepts>>, which are used by more than one interface type, are described once.
 
-The standard document is in HTML allowing heavy use of in-document links: all state names, function names, many function arguments, XML elements and attributes are links to definitions or descriptions.
-By pressing "t", the table of contents can be displayed on the left side or hidden.
+The standard document is in HTML allowing heavy use of in-document links: all mode names, function names, many function arguments, XML elements and attributes are links to definitions or descriptions.
 
 In key parts of this document, non-normative examples are used to help understand the standard.
 To keep the standard itself brief, the https://modelica.github.io/fmi-guides/main/fmi-guide/[FMI Implementer's Guide] was created.
@@ -335,7 +336,9 @@ Contrary to the standard, the FMI Implementer's Guide will be a living document,
 
 Conventions used in this document:
 
-* Non-normative text is given in square brackets in italic font: _[Especially examples are defined in this style.]_
+* Non-normative text is given like this:
++
+NOTE: Especially examples are defined in this style.
 
 * The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in https://tools.ietf.org/html/rfc2119[RFC 2119] (regardless of formatting and capitalization).
 
@@ -345,4 +348,4 @@ Conventions used in this document:
 [[VariableTypeExclClock,`{VariableTypeExclClock}`]]
 * `{VariableTypeExclClock}` is used just like <<VariableType>>, except does not include functions on variable type `fmi3Clock`.
 
-* State machine states are formatted as *bold* link, e.g. <<InitializationMode>>.
+* State machine modes are formatted as *bold* link, e.g. <<InitializationMode>>.

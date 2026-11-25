@@ -5,7 +5,7 @@
     targetNamespace="http://fmi-standard.org/fmi-ls-manifest">
     <xs:annotation>
         <xs:documentation>
-Copyright(c) 2023 Modelica Association Project "FMI".
+Copyright(c) 2026 Modelica Association Project "FMI".
              All rights reserved.
 
 This file is licensed by the copyright holders under the 2-Clause BSD License
@@ -36,7 +36,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ----------------------------------------------------------------------------
         </xs:documentation>
     </xs:annotation>
-    
+
     <xs:attribute name="fmi-ls-name" type="xs:normalizedString">
         <xs:annotation>
             <xs:documentation xml:lang="en">
@@ -64,7 +64,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             </xs:documentation>
         </xs:annotation>
     </xs:attribute>
-    
+
     <xs:attributeGroup name="ALayeredStandardManifest">
         <xs:annotation>
             <xs:documentation xml:lang="en">
